@@ -74,3 +74,5 @@ Desktop.ini
 *.ipr
 *.iws
 .idea/
+
+# Docker data
