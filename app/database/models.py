@@ -13,7 +13,9 @@ class Admin(Base):
     tg_id: Mapped[int] = mapped_column(unique=True, nullable=False)
     username: Mapped[str]
     is_superadmin: Mapped[bool] = mapped_column(default=False)
-    group_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("groups.id", ondelete="SET NULL"))
+    group_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("groups.id", ondelete="SET NULL")
+    )
 
 
 class User(Base):
@@ -40,11 +42,17 @@ class Location(Base):
 
 class Group(Base):
     __tablename__ = "groups"
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
     name: Mapped[uuid.UUID] = mapped_column(String, nullable=False)
 
-    location_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey('locations.id'))  # Связь с локацией
-    admin_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey('admins.id'))  # Связь с админом (один админ в группе)
+    location_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("locations.id")
+    )  # Связь с локацией
+    admin_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("admins.id")
+    )  # Связь с админом (один админ в группе)
 
     location = relationship("Location", back_populates="groups")  # Связь с локацией
     admin = relationship("Admin", back_populates="group")  # Связь с админом
