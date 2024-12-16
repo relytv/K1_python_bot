@@ -13,9 +13,6 @@ class Admin(Base):
     tg_id: Mapped[int] = mapped_column(unique=True, nullable=False)
     username: Mapped[str]
     is_superadmin: Mapped[bool] = mapped_column(default=False)
-    group_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("groups.id", ondelete="SET NULL")
-    )
 
 
 class User(Base):
@@ -25,14 +22,14 @@ class User(Base):
     )
     username: Mapped[str] = mapped_column(default=0)
     points: Mapped[int]
-    group_id = Mapped[uuid.UUID] = mapped_column(
+    group_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("groups.id")
     )
     group = relationship("Group", back_populates="users")
 
 
 class Location(Base):
-    __tablename__ = "groups"
+    __tablename__ = "locations"
     id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
     )

@@ -12,7 +12,7 @@ from handlers import start_menu
 async def main():
     logging.basicConfig(level=logging.INFO)
     
-    engine = create_async_engine(url= "postgresql+asyncpg://postgres:postgres@localhost:9876/postgres", echo=True)
+    engine = create_async_engine(url= "postgresql+asyncpg://k1_admin:postgres@localhost:9876/postgres", echo=True)
     session = async_sessionmaker(engine, expire_on_commit=False)
     
     bot = Bot("6963651623:AAEVd6CKaeP1vJKXT24WoY5DECa_tET6S7g")
