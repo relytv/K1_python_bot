@@ -25,6 +25,7 @@ async def main():
     dp.update.middleware(DatabaseMiddleware(session))
 
     admin_router = superadmin_commands.router
+    
     admin_router.message.middleware(AdminCheckMiddleware(session))
     admin_router.callback_query.middleware(AdminCheckMiddleware(session))
     

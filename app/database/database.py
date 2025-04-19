@@ -1,39 +1,66 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from app.database.models import Admin
+from app.database.models import Admin, Group, Location
 
 
 class Database:
     def __init__(self, session: AsyncSession):
         self.session = session
 
-    async def add_admin(
-        self, 
-        tg_id: int, 
-        username: str, 
-        is_superadmin: bool
-    ) -> Admin: 
-        
+    # Комманды супер-админов!
+    async def add_admin(self, tg_id: int, username: str, is_superadmin: bool) -> Admin:
+
         new_admin = Admin(
             tg_id=tg_id,
             username=username,
             is_superadmin=is_superadmin,
         )
-    
+
         self.session.add(new_admin)
         await self.session.commit()
         return new_admin
 
     async def get_admin(self, tg_id: int) -> Admin | None:
-        result = await self.session.execute(
-            select(Admin).where(Admin.tg_id == tg_id)
-        )
+        result = await self.session.execute(select(Admin).where(Admin.tg_id == tg_id))
         return result.scalar()
-    
 
     async def is_admin(self, tg_id: int) -> bool:
-        result = await self.session.execute(
-            select(Admin.tg_id)
-        )
+        result = await self.session.execute(select(Admin.tg_id))
         admin_ids = result.scalars().all()
         return tg_id in admin_ids
+
+    async def add_location(self, name: str) -> Location:
+        new_location = Location(name=name)
+        self.session.add(new_location)
+        await self.session.commit
+        return new_location
+
+    async def add_group(
+        self, group_name: str, admin_tg_id: int, location_name: str
+    ) -> Group:
+        
+        admin = await self.get_admin(admin_tg_id)
+        if not admin:
+            raise ValueError(f"Администратор с TG ID {admin_tg_id} не найден")
+        
+        location = await self.session.execute(
+        select(Location).where(Location.name == location_name)
+        )
+        location = location.scalar()
+        
+        
+        new_group = Group(
+            name = group_name,
+            admin_id = admin.id,
+            location_id = location.id
+        )
+
+        self.session.add(new_group)
+        await self.session.commit()
+        return new_group
+
+
+# Команды админов(тьюторов)
+
+
+# Команды Пользователей
