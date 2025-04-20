@@ -55,5 +55,33 @@ async def add_location(message: Message, command: CommandObject, db: Database):
             "/add_location Гольцова"
         )
 
+@router.message(Command("add_group"))
+async def add_group(message: Message, command: CommandObject, db: Database):
+    
+    if command.args is None:
+        await message.answer("Ошибка: не переданы аргументы")
+        return
+
+    try:
+        args = command.args.strip().split()
+        group_name = args[0]
+        location_name = args[1]
+        admin_name = args[2]
+        
+        group = await db.add_group(group_name=group_name,admin_name=admin_name, location_name=location_name)
+
+        await message.answer(
+            "✅ Локация успешно добавлена:\n" 
+            f"group_name: {group.name}\n"
+            f"location: {group.location}\n"
+            f"tutor: {group.admin}" 
+        )
+
+    except ValueError:
+        await message.answer(
+            "Ошибка: неправльный формат команды. Пример:\n"
+            "/add_group Среда_10:00 Гольцова Gleb"
+        )
+
 
 # db.add_admin

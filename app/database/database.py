@@ -1,6 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from app.database.models import Admin, Group, Location
+from app.database.models import Admin, Group, Location, User
 
 
 class Database:
@@ -20,8 +20,17 @@ class Database:
         await self.session.commit()
         return new_admin
 
-    async def get_admin(self, tg_id: int) -> Admin | None:
-        result = await self.session.execute(select(Admin).where(Admin.tg_id == tg_id))
+    async def get_admin(
+        self, tg_id: int | None = None, usernaname: str | None = None
+    ) -> Admin | None:
+        if tg_id:
+            result = await self.session.execute(
+                select(Admin).where(Admin.tg_id == tg_id)
+            )
+        elif usernaname:
+            result = await self.session.execute(
+                select(Admin).where(Admin.username == usernaname)
+            )
         return result.scalar()
 
     async def is_admin(self, tg_id: int) -> bool:
@@ -36,28 +45,34 @@ class Database:
         return new_location
 
     async def add_group(
-        self, group_name: str, admin_tg_id: int, location_name: str
+        self, group_name: str, admin_name: str, location_name: str
     ) -> Group:
-        
-        admin = await self.get_admin(admin_tg_id)
+
+        admin = await self.get_admin(usernaname=admin_name)
         if not admin:
-            raise ValueError(f"Администратор с TG ID {admin_tg_id} не найден")
-        
+            raise ValueError(f"Администратор с TG ID {admin_name} не найден")
+
         location = await self.session.execute(
-        select(Location).where(Location.name == location_name)
+            select(Location).where(Location.name == location_name)
         )
         location = location.scalar()
-        
-        
-        new_group = Group(
-            name = group_name,
-            admin_id = admin.id,
-            location_id = location.id
-        )
+
+        new_group = Group(name=group_name, admin_id=admin.id, location_id=location.id)
 
         self.session.add(new_group)
         await self.session.commit()
         return new_group
+
+    async def add_user(self, username: str, group_name: int, points: int = 0) -> User:
+        pass
+
+    async def get_all_group_and_loc(self):
+        query = select(Group.name, Location.name).join(
+            Location, Group.location_id == Location.id
+        )
+
+        result = await self.session.execute(query)
+        return result.all()
 
 
 # Команды админов(тьюторов)
