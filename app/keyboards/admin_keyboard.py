@@ -4,7 +4,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder, InlineKeyboardMarkup
 
 def get_start_admin_menu_kb() -> InlineKeyboardBuilder:
     builder = InlineKeyboardBuilder()
-    btn1 = types.InlineKeyboardButton(text="Показать группы", callback_data="some_data")
+    btn1 = types.InlineKeyboardButton(text="Показать группы", callback_data="show_my_groups")
     btn2 = types.InlineKeyboardButton(text="Проставить оценки", callback_data="some_data")
     builder.add(btn1)
     builder.add(btn2)
