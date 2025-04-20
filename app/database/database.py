@@ -38,6 +38,14 @@ class Database:
         admin_ids = result.scalars().all()
         return tg_id in admin_ids
 
+    async def is_super_admin(self, tg_id: int) -> bool:
+        result = await self.session.execute(select(Admin.is_superadmin).where(Admin.tg_id == tg_id))
+        result = result.scalar()
+        if result:
+            return True
+        else:
+            return False
+    
     async def add_location(self, name: str) -> Location:
         new_location = Location(name=name)
         self.session.add(new_location)
@@ -47,7 +55,7 @@ class Database:
     async def add_group(
         self, group_name: str, admin_name: str, location_name: str
     ) -> Group:
-
+    
         admin = await self.get_admin(usernaname=admin_name)
         if not admin:
             raise ValueError(f"Администратор с TG ID {admin_name} не найден")
@@ -63,38 +71,32 @@ class Database:
         await self.session.commit()
         return new_group
 
-    async def add_user(self, username: str, group_name: str, location_name: str, points: int = 0) -> User:
-        
+    async def add_user(
+        self, username: str, group_name: str, location_name: str, points: int = 0
+    ) -> User:
+
         location = await self.session.execute(
             select(Location).where(Location.name == location_name)
         )
         location = location.scalar()
         print(f"ПРОВЕРКА! {location.id}")
 
-
-        group= await self.session.execute(
+        group = await self.session.execute(
             select(Group).where(
-                and_(
-                Group.name == group_name,
-                Group.location_id == location.id
-                )
+                and_(Group.name == group_name, Group.location_id == location.id)
             )
         )
         group = group.scalar()
         print(f"ПРОВЕРКА! {group}")
-        
+
         # print(group)
 
-        new_user = User(
-            username=username,
-            group_id = group.id,     
-            points = points 
-        )
+        new_user = User(username=username, group_id=group.id, points=points)
 
         self.session.add(new_user)
         await self.session.commit()
         return new_user
-    
+
     async def get_all_group_and_locations(self) -> list[dict]:
         query = select(Group.name, Location.name).join(
             Location, Group.location_id == Location.id
@@ -107,4 +109,34 @@ class Database:
 # Команды админов(тьюторов)
 
 
+# привязка tg аккаунта пользователя
+    
+    async def get_user_by_tg_id(self, tg_id: int) -> User | None:
+        result = await self.session.execute(
+            select(User).where(User.tg_id == tg_id)
+        )
+        return result.scalar_one_or_none()
+
+    async def get_user_by_name(self, name: str) -> User | None:
+        result = await self.session.execute(
+            select(User).where(User.username == name)
+        )
+        return result.scalar_one_or_none()
+
+    async def link_telegram_id(self, user_id: int, tg_id: int):
+        user = await self.session.get(User, user_id)
+        if user:
+            user.tg_id = tg_id
+            await self.session.commit()
+
 # Команды Пользователей
+
+
+    async def get_cyberons(self, tg_id) -> int:
+        user = await self.session.execute(
+            select(User).where(User.tg_id == tg_id)
+        )
+        result = user.scalar()
+        print(f"ПРОВЕРКА {result.points}")
+        
+        return result.points
