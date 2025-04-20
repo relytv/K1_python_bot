@@ -105,9 +105,19 @@ class Database:
         result = await self.session.execute(query)
         return result.all()
 
+#Команды тюторов
+    async def get_admins_groups(self, tg_id) -> list[dict]:
+        admin = await self.get_admin(tg_id=tg_id)
+        
+        query = (
+            select(Group.name, Location.name)
+            .join(Group.location)
+            .where(Group.admin_id == admin.id)
+        )
 
-# Команды админов(тьюторов)
-
+        result = await self.session.execute(query)
+        return result.all()
+        
 
 # привязка tg аккаунта пользователя
     
