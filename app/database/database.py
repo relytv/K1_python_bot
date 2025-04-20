@@ -32,7 +32,7 @@ class Database:
     async def add_location(self, name: str) -> Location:
         new_location = Location(name=name)
         self.session.add(new_location)
-        await self.session.commit
+        await self.session.commit()
         return new_location
 
     async def add_group(
