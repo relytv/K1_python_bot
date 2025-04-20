@@ -19,4 +19,7 @@ class DatabaseMiddleware(BaseMiddleware):
 
         async with self.session() as session:
             data["db"] = Database(session=session)
-            return await handler(event, data)
+            try:
+                return await handler(event, data)
+            finally:
+                await session.close()
