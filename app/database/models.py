@@ -34,6 +34,7 @@ class User(Base):
     group_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("groups.id")
     )
+    tg_id: Mapped[int] = mapped_column(unique=True, nullable=True)
     groups = relationship("Group", back_populates="users")
 
 
