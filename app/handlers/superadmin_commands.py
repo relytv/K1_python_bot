@@ -59,7 +59,8 @@ async def add_location(message: Message, command: CommandObject, db: Database):
 async def add_group(message: Message, command: CommandObject, db: Database):
     
     if command.args is None:
-        await message.answer("Ошибка: не переданы аргументы")
+        await message.answer("Ошибка: не переданы аргументы\n"
+                             "Пример: /add_group <Название> <Локация> <Админ>")
         return
 
     try:
@@ -72,9 +73,9 @@ async def add_group(message: Message, command: CommandObject, db: Database):
 
         await message.answer(
             "✅ Группа успешно добавлена:\n" 
-            f"group_name: {group.name}\n"
-            f"location: {group.location}\n"
-            f"tutor: {group.admin}" 
+            f"group_name: {group_name}\n"
+            f"location: {location_name}\n"
+            f"tutor: {admin_name}" 
         )
 
     except ValueError:
@@ -114,8 +115,8 @@ async def add_user(message: Message, command: CommandObject, db: Database):
             "Ошибка: неправльный формат команды. Пример:\n"
             "/add_user Иван Иванов Среда_10:30 Гольцова "
         )
-    # except Exception as e:
-    #     await message.answer("⚠️ Произошла ошибка при добавлении пользователя")
+    except Exception as e:
+        await message.answer("⚠️ Произошла ошибка при добавлении пользователя. Перепроверь данные!")
 
 @router.message(Command("show_groups_with_locations"))
 async def show_groups_with_locations(
