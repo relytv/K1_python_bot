@@ -1,5 +1,5 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, and_
 from app.database.models import Admin, Group, Location, User
 
 
@@ -63,10 +63,39 @@ class Database:
         await self.session.commit()
         return new_group
 
-    async def add_user(self, username: str, group_name: int, points: int = 0) -> User:
-        pass
+    async def add_user(self, username: str, group_name: str, location_name: str, points: int = 0) -> User:
+        
+        location = await self.session.execute(
+            select(Location).where(Location.name == location_name)
+        )
+        location = location.scalar()
+        print(f"ПРОВЕРКА! {location.id}")
 
-    async def get_all_group_and_loc(self):
+
+        group= await self.session.execute(
+            select(Group).where(
+                and_(
+                Group.name == group_name,
+                Group.location_id == location.id
+                )
+            )
+        )
+        group = group.scalar()
+        print(f"ПРОВЕРКА! {group}")
+        
+        # print(group)
+
+        new_user = User(
+            username=username,
+            group_id = group.id,     
+            points = points 
+        )
+
+        self.session.add(new_user)
+        await self.session.commit()
+        return new_user
+    
+    async def get_all_group_and_locations(self) -> list[dict]:
         query = select(Group.name, Location.name).join(
             Location, Group.location_id == Location.id
         )
