@@ -24,10 +24,11 @@ class AdminCheckMiddleware(BaseMiddleware):
 
         async with self.session() as session:
             db = Database(session=session)
-
             if not await db.is_admin(user.id):
                 if isinstance(event, Message):
                     await event.answer("🚫Только для администратора")
                     return
-
+                
+            
+            data["db"] = db
             return await handler(event, data)
