@@ -1,3 +1,5 @@
+from typing import Union
+import uuid
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_
 from app.database.models import Admin, Group, Location, User
@@ -39,13 +41,15 @@ class Database:
         return tg_id in admin_ids
 
     async def is_super_admin(self, tg_id: int) -> bool:
-        result = await self.session.execute(select(Admin.is_superadmin).where(Admin.tg_id == tg_id))
+        result = await self.session.execute(
+            select(Admin.is_superadmin).where(Admin.tg_id == tg_id)
+        )
         result = result.scalar()
         if result:
             return True
         else:
             return False
-    
+
     async def add_location(self, name: str) -> Location:
         new_location = Location(name=name)
         self.session.add(new_location)
@@ -55,7 +59,7 @@ class Database:
     async def add_group(
         self, group_name: str, admin_name: str, location_name: str
     ) -> Group:
-    
+
         admin = await self.get_admin(usernaname=admin_name)
         if not admin:
             raise ValueError(f"Администратор с TG ID {admin_name} не найден")
@@ -105,32 +109,54 @@ class Database:
         result = await self.session.execute(query)
         return result.all()
 
-#Команды тюторов
+    # Команды тюторов
     async def get_admins_groups(self, tg_id) -> list[dict]:
         admin = await self.get_admin(tg_id=tg_id)
-        
+
         query = (
-            select(Group.name, Location.name)
+            select(Group.name, Location.name, Group.id)
             .join(Group.location)
             .where(Group.admin_id == admin.id)
         )
 
         result = await self.session.execute(query)
         return result.all()
-        
 
-# привязка tg аккаунта пользователя
-    
-    async def get_user_by_tg_id(self, tg_id: int) -> User | None:
+    async def get_users_by_group_id(self, group_id: uuid.UUID) -> list[User]:
         result = await self.session.execute(
-            select(User).where(User.tg_id == tg_id)
+            select(User.username, User.points, User.id).where(User.group_id == group_id)
         )
+     
+        return result.all()
+    
+    async def update_user_points(
+            self, 
+            identifier: Union[uuid.UUID, str], 
+            points: int
+        ):
+        if isinstance(identifier, uuid.UUID):
+            user = await self.session.get(User, identifier)
+        else:
+            user = await self.session.execute(
+                select(User).where(User.username == identifier)
+            )
+            user = user.scalar_one_or_none()
+
+        if user:
+            user.points += points
+            await self.session.commit()
+            return True
+        return False
+            
+
+    # привязка tg аккаунта пользователя
+
+    async def get_user_by_tg_id(self, tg_id: int) -> User | None:
+        result = await self.session.execute(select(User).where(User.tg_id == tg_id))
         return result.scalar_one_or_none()
 
     async def get_user_by_name(self, name: str) -> User | None:
-        result = await self.session.execute(
-            select(User).where(User.username == name)
-        )
+        result = await self.session.execute(select(User).where(User.username == name))
         return result.scalar_one_or_none()
 
     async def link_telegram_id(self, user_id: int, tg_id: int):
@@ -139,14 +165,14 @@ class Database:
             user.tg_id = tg_id
             await self.session.commit()
 
-# Команды Пользователей
-
+    # Команды Пользователей
 
     async def get_cyberons(self, tg_id) -> int:
-        user = await self.session.execute(
-            select(User).where(User.tg_id == tg_id)
-        )
+        user = await self.session.execute(select(User).where(User.tg_id == tg_id))
         result = user.scalar()
         print(f"ПРОВЕРКА {result.points}")
-        
+
         return result.points
+    
+
+    
