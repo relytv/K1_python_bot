@@ -2,7 +2,7 @@ import uuid
 from app.database.base import Base
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy import String, ForeignKey
+from sqlalchemy import String, ForeignKey, BigInteger
 
 
 class Admin(Base):
@@ -13,7 +13,7 @@ class Admin(Base):
         default=uuid.uuid4
     )
 
-    tg_id: Mapped[int] = mapped_column(unique=True, nullable=False)
+    tg_id: Mapped[int] = mapped_column(BigInteger, unique=True, nullable=True)
     username: Mapped[str]
     is_superadmin: Mapped[bool] = mapped_column(default=False)
     
@@ -34,7 +34,7 @@ class User(Base):
     group_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("groups.id")
     )
-    tg_id: Mapped[int] = mapped_column(unique=True, nullable=True)
+    tg_id: Mapped[int] = mapped_column(BigInteger, unique=True, nullable=True)
     groups = relationship("Group", back_populates="users")
 
 
